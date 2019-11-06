@@ -1,0 +1,19 @@
+---
+- name: Example nginx play
+  hosts: webservers
+  
+  vars:
+  
+  tasks:
+    - name: Install nginx
+      package:
+        name: nginx
+        state: present
+      become: true
+
+    - name: Set nginx service state
+      systemd:
+        name: nginx
+        state: started
+        enabled: true
+      become: true

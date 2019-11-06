@@ -1,0 +1,19 @@
+---
+- name: Install nginx rpm
+  package:
+    name: nginx
+    state: present
+  become: true
+
+- name: Set nginx service state
+  systemd:
+    name: 'nginx'
+    state: '{{ nginx_service_state }}'
+    enabled: '{{ nginx_service_enabled }}'
+  become: true
+  notify:
+    - restart nginx
+
+
+
+

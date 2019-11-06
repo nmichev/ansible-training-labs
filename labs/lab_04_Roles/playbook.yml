@@ -1,0 +1,10 @@
+---
+- name: Example nginx play with role
+  hosts: webservers
+  
+  vars:
+  
+  tasks:
+  
+  roles:
+    - { role: nginx }

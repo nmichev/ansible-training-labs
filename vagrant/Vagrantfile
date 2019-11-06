@@ -1,0 +1,48 @@
+insecure_key_path = File.join(Dir.home, ".vagrant.d", "insecure_private_key")
+insecure_prv_key = IO.read(insecure_key_path)
+
+$provision = <<-SCRIPT
+echo "#{insecure_prv_key}" > $HOME/.ssh/id_rsa
+chmod 600 $HOME/.ssh/id_rsa
+SCRIPT
+
+Vagrant.configure("2") do |config|
+
+  config.vm.define "db" do |db|
+
+    db.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2", "--name", "IaC db"]
+    end
+
+    db.vm.box = "centos/7"
+    db.vm.box_download_insecure = true
+
+    db.ssh.insert_key = false
+    db.ssh.forward_agent = true
+
+    db.vm.network "private_network", ip: "172.16.0.20"
+    db.vm.network :forwarded_port, guest: 22, host: 2220, id: "ssh"
+  end
+
+  config.vm.define "webserver" do |webserver|
+
+    webserver.vm.provider :virtualbox do |vb|
+      vb.customize ["modifyvm", :id, "--memory", "1024", "--cpus", "2", "--name", "IaC Webserver"]
+    end
+
+    webserver.vm.box = "centos/7"
+    webserver.vm.box_download_insecure = true
+
+    webserver.ssh.insert_key = false
+    webserver.ssh.forward_agent = true
+
+    webserver.vm.network "private_network", ip: "172.16.0.50"
+    webserver.vm.network :forwarded_port, guest: 22, host: 2240, id: "ssh"
+
+    webserver.vm.provision "shell", privileged: false, inline: $provision
+
+    webserver.vm.synced_folder "../labs", "/opt/ansible/labs", mount_options: ["dmode=775,fmode=777"]
+
+  end
+
+end
